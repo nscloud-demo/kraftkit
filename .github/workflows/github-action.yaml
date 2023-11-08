@@ -20,7 +20,11 @@ env:
 
 jobs:
   qemu:
-    runs-on: nscloud-ubuntu-22.04-amd64-2x8
+    runs-on: 
+      - nscloud-ubuntu-22.04-amd64-8x16-with-cache
+      - nscloud-cache-tag-unikraft-qemu
+      - nscloud-cache-size-100gb
+      - nscloud-exp-container-image-cache
 
     steps:
       - uses: namespacelabs/nscloud-setup@v0
@@ -37,7 +41,11 @@ jobs:
             GIT_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
   github-action:
-    runs-on: nscloud-ubuntu-22.04-amd64-2x8
+    runs-on: 
+      - nscloud-ubuntu-22.04-amd64-8x16-with-cache
+      - nscloud-cache-tag-unikraft-qemu
+      - nscloud-cache-size-100gb
+      - nscloud-exp-container-image-cache
     needs: [qemu]
 
     steps:
