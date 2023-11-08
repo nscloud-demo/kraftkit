@@ -15,34 +15,26 @@ on:
       - '.github/workflows/github-action.yaml'
   workflow_dispatch:
 
+env:
+  QEMU_VERSION: 7.2.4
+
 jobs:
   qemu:
     runs-on: nscloud-ubuntu-22.04-amd64-2x8
 
-    strategy:
-      matrix:
-        include:
-          - QEMU_VERSION: 7.2.4
-
     steps:
+      - uses: namespacelabs/nscloud-setup@v0
+        id: nsc
+
       - name: Build OCI image
         uses: docker/build-push-action@v5
         with:
-          push: false
           file: ./buildenvs/qemu.Dockerfile
-          tags: kraftkit.sh/qemu:${{ matrix.QEMU_VERSION }}
+          tags: ${{ steps.nsc.outputs.registry-address }}/kraftkit.sh/qemu:${{ env.QEMU_VERSION }}
           platforms: linux/amd64
+          push: true
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/qemu-${{ matrix.QEMU_VERSION }}.tar
-
-      - name: Upload Docker image artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: oci-images
-          path: /tmp/qemu-${{ matrix.QEMU_VERSION }}.tar
 
   github-action:
     runs-on: nscloud-ubuntu-22.04-amd64-2x8
@@ -50,24 +42,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-  
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: oci-images
-          path: /tmp
 
-      - name: Load Docker image
+      - uses: namespacelabs/nscloud-setup@v0
+        id: nsc
+
+      - name: Pull qemu image
         run: |
-          for I in /tmp/*.tar; do docker load --input "${I}"; done
-
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        if: ${{ github.event_name == 'push' }}
-        with:
-          registry: index.unikraft.io
-          username: ${{ secrets.REG_USERNAME }}
-          password: ${{ secrets.REG_TOKEN }}
+          docker pull ${{ steps.nsc.outputs.registry-address }}/kraftkit.sh/qemu:${{ env.QEMU_VERSION }}
 
       - name: Build OCI Image
         uses: docker/build-push-action@v5
@@ -103,7 +84,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         with:
           push: true
-          tags: index.unikraft.io/kraftkit.sh/github-action:v0
+          tags: ${{ steps.nsc.outputs.registry-address }}/kraftkit.sh/github-action:v0
           platforms: linux/amd64
           file: ./buildenvs/github-action.Dockerfile
           secrets: |
