@@ -21,9 +21,7 @@ env:
 jobs:
   qemu:
     runs-on: 
-      - nscloud-ubuntu-22.04-amd64-8x16-with-cache
-      - nscloud-cache-tag-unikraft-qemu
-      - nscloud-cache-size-100gb
+      - nscloud-ubuntu-22.04-amd64-8x16
 
     steps:
       - uses: namespacelabs/nscloud-setup@v0
@@ -41,9 +39,7 @@ jobs:
 
   github-action:
     runs-on: 
-      - nscloud-ubuntu-22.04-amd64-8x16-with-cache
-      - nscloud-cache-tag-unikraft-qemu
-      - nscloud-cache-size-100gb
+      - nscloud-ubuntu-22.04-amd64-8x16
 
     needs: [qemu]
 
